@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">ADBKeyBoard</string>
+	<string name="title">Insomniac</string>
+	<string name="subtitle">Auto-typing keyboard</string>
+	<string name="switch_keyboard">Switch to&#160;&#160;⌨️</string>
 	<string name="keyboard_name">ADB Keyboard</string>
-	<string name="keyboard_on">ADB Keyboard {ON}</string>
 </resources>
