@@ -18,8 +18,12 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AdbIME extends InputMethodService {
 
@@ -32,15 +36,22 @@ public class AdbIME extends InputMethodService {
     private static final int DEFAULT_DELAY_MEAN = 200;
     private static final int DEFAULT_DELAY_DEVIATION = 100;
 
-    private BroadcastReceiver mReceiver = null;
-    private View mInputView = null;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final AtomicInteger animationDotsCount = new AtomicInteger(0);
+    private BroadcastReceiver receiver = null;
+    private View inputView = null;
+    private TextView typingProgress = null;
+    private TextView typingNoProgress = null;
+    private Timer animationTimer = null;
 
     @Override
     public View onCreateInputView() {
-        mInputView = getLayoutInflater().inflate(R.layout.view, null);
+        inputView = getLayoutInflater().inflate(R.layout.view, null);
         final InputMethodManager inputMethodManager = (InputMethodManager) getApplicationContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
-        Button switchButton = mInputView.findViewById(R.id.switchButton);
+        Button switchButton = inputView.findViewById(R.id.switchButton);
+        typingProgress = inputView.findViewById(R.id.typingProgress);
+        typingNoProgress = inputView.findViewById(R.id.typingNoProgress);
         switchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -48,24 +59,24 @@ public class AdbIME extends InputMethodService {
             }
         });
 
-        if (mReceiver == null) {
+        if (receiver == null) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(IME_MESSAGE_B64);
             filter.addAction(IME_CLEAR_TEXT);
-            mReceiver = new AdbReceiver();
-            registerReceiver(mReceiver, filter);
+            receiver = new AdbReceiver();
+            registerReceiver(receiver, filter);
         }
 
-        return mInputView;
+        return inputView;
     }
 
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
-        int keyboardHeight = Math.round(Math.min(Math.max(getScreenHeight() / 3f, dp(150)), dp(300)));
-        ViewGroup.LayoutParams lp = mInputView.getLayoutParams();
+        int keyboardHeight = Math.round(Math.min(Math.max(getScreenHeight() / 3f, dp(200)), dp(400)));
+        ViewGroup.LayoutParams lp = inputView.getLayoutParams();
         lp.height = keyboardHeight;
-        mInputView.setLayoutParams(lp);
+        inputView.setLayoutParams(lp);
     }
 
     private float getScreenHeight() {
@@ -80,10 +91,45 @@ public class AdbIME extends InputMethodService {
         );
     }
 
+    private void startTypingAnimation() {
+        typingProgress.setVisibility(View.VISIBLE);
+        typingNoProgress.setVisibility(View.INVISIBLE);
+        if (animationTimer != null) {
+            animationTimer.cancel();
+        }
+        animationDotsCount.set(0);
+        animationTimer = new Timer();
+        animationTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                animationDotsCount.set((animationDotsCount.get() + 1) % 4);
+                final StringBuilder builder = new StringBuilder(getString(R.string.typing));
+                for (int i = 0; i < animationDotsCount.get(); i++) {
+                    builder.append('.');
+                }
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        typingProgress.setText(builder.toString());
+                    }
+                });
+            }
+        }, 0, 300);
+    }
+
+    private void stopTypingAnimation() {
+        if (animationTimer != null) {
+            animationTimer.cancel();
+        }
+        animationTimer = null;
+        typingProgress.setVisibility(View.INVISIBLE);
+        typingNoProgress.setVisibility(View.VISIBLE);
+    }
+
     public void onDestroy() {
         super.onDestroy();
-        if (mReceiver != null) {
-            unregisterReceiver(mReceiver);
+        if (receiver != null) {
+            unregisterReceiver(receiver);
         }
     }
 
@@ -97,6 +143,7 @@ public class AdbIME extends InputMethodService {
         private void typeText(InputConnection inputConnection, String text) {
             this.text = text;
             typeChar(inputConnection, 0);
+            startTypingAnimation();
         }
 
         private void typeChar(final InputConnection inputConnection, final int typedSymbols) {
@@ -109,6 +156,8 @@ public class AdbIME extends InputMethodService {
                 public void run() {
                     if (typedSymbols < text.length() - 1) {
                         typeChar(inputConnection, typedSymbols + 1);
+                    } else {
+                        stopTypingAnimation();
                     }
                 }
             }, randomDelay);

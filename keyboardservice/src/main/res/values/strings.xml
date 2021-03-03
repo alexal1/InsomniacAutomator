@@ -4,4 +4,6 @@
 	<string name="subtitle">Auto-typing keyboard</string>
 	<string name="switch_keyboard">Switch to&#160;&#160;⌨️</string>
 	<string name="keyboard_name">ADB Keyboard</string>
+	<string name="typing">Typing</string>
+	<string name="no_typing">Waiting for a job</string>
 </resources>
