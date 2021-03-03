@@ -114,7 +114,7 @@ public class AdbIME extends InputMethodService {
                     }
                 });
             }
-        }, 0, 300);
+        }, 0, 400);
     }
 
     private void stopTypingAnimation() {
