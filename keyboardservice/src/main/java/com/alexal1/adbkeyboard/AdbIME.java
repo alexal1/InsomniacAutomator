@@ -27,8 +27,10 @@ public class AdbIME extends InputMethodService {
     private static final String IME_MESSAGE_B64 = "ADB_INPUT_B64";
     private static final String IME_CLEAR_TEXT = "ADB_CLEAR_TEXT";
     private static final String EXTRA_MESSAGE = "msg";
-    private static final String EXTRA_DELAY = "delay";
-    private static final int DEFAULT_DELAY = 200;
+    private static final String EXTRA_DELAY_MEAN = "delay_mean";
+    private static final String EXTRA_DELAY_DEVIATION = "delay_deviation";
+    private static final int DEFAULT_DELAY_MEAN = 200;
+    private static final int DEFAULT_DELAY_DEVIATION = 100;
 
     private BroadcastReceiver mReceiver = null;
     private View mInputView = null;
@@ -60,7 +62,7 @@ public class AdbIME extends InputMethodService {
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
-        int keyboardHeight = Math.round(Math.min(getScreenHeight() / 3f, dp(200)));
+        int keyboardHeight = Math.round(Math.min(Math.max(getScreenHeight() / 3f, dp(150)), dp(300)));
         ViewGroup.LayoutParams lp = mInputView.getLayoutParams();
         lp.height = keyboardHeight;
         mInputView.setLayoutParams(lp);
@@ -89,7 +91,8 @@ public class AdbIME extends InputMethodService {
 
         private final Handler mainHandler = new Handler(Looper.getMainLooper());
         private String text;
-        private int delay;
+        private int delayMean;
+        private int delayDeviation;
 
         private void typeText(InputConnection inputConnection, String text) {
             this.text = text;
@@ -99,6 +102,8 @@ public class AdbIME extends InputMethodService {
         private void typeChar(final InputConnection inputConnection, final int typedSymbols) {
             char c = text.charAt(typedSymbols);
             inputConnection.commitText(String.valueOf(c), 1);
+
+            long randomDelay = delayMean - delayDeviation + Math.round(2 * delayDeviation * Math.random());
             mainHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -106,13 +111,14 @@ public class AdbIME extends InputMethodService {
                         typeChar(inputConnection, typedSymbols + 1);
                     }
                 }
-            }, delay);
+            }, randomDelay);
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(IME_MESSAGE_B64)) {
-                delay = intent.getIntExtra(EXTRA_DELAY, DEFAULT_DELAY);
+                delayMean = intent.getIntExtra(EXTRA_DELAY_MEAN, DEFAULT_DELAY_MEAN);
+                delayDeviation = intent.getIntExtra(EXTRA_DELAY_DEVIATION, DEFAULT_DELAY_DEVIATION);
                 String data = intent.getStringExtra(EXTRA_MESSAGE);
 
                 byte[] b64 = Base64.decode(data, Base64.DEFAULT);
