@@ -14,6 +14,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
@@ -189,10 +190,13 @@ public class AdbIME extends InputMethodService {
             if (intent.getAction().equals(IME_CLEAR_TEXT)) {
                 InputConnection ic = getCurrentInputConnection();
                 if (ic != null) {
-                    CharSequence curPos = ic.getExtractedText(new ExtractedTextRequest(), 0).text;
-                    CharSequence beforePos = ic.getTextBeforeCursor(curPos.length(), 0);
-                    CharSequence afterPos = ic.getTextAfterCursor(curPos.length(), 0);
-                    ic.deleteSurroundingText(beforePos.length(), afterPos.length());
+                    ExtractedText extractedText = ic.getExtractedText(new ExtractedTextRequest(), 0);
+                    if (extractedText != null) {
+                        CharSequence curPos = extractedText.text;
+                        CharSequence beforePos = ic.getTextBeforeCursor(curPos.length(), 0);
+                        CharSequence afterPos = ic.getTextAfterCursor(curPos.length(), 0);
+                        ic.deleteSurroundingText(beforePos.length(), afterPos.length());
+                    }
                 }
             }
         }
