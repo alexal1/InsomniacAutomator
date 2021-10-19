@@ -1,2 +1,3 @@
 // List all modules in root project
 include ':keyboardservice'
+include ':starter'

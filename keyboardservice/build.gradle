@@ -1,19 +1,25 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
 
     defaultConfig {
         applicationId 'com.alexal1.adbkeyboard'
-        minSdkVersion 15
-        targetSdkVersion 29
-        versionCode 2
-        versionName "2.0"
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionCode versions.versionCode
+        versionName versions.versionName
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.constraintlayout:constraintlayout:2.0.4"
+    implementation "androidx.constraintlayout:constraintlayout:$versions.constraint"
+    implementation project(path: ':starter')
 }

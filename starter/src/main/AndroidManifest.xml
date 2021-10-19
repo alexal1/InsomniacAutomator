@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.alexal1.starter">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application>
+        <activity
+            android:name=".StarterActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:launchMode="singleInstance"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="com.alexal1.starter.CHECK_CONNECTION_AND_LAUNCH_APP" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
