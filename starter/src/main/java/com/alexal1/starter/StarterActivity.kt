@@ -135,6 +135,6 @@ class StarterActivity : Activity() {
         private const val STATUS_FAIL = 1
         private const val STATUS_SUCCESS = 2
 
-        private const val RETRY_DELAY = 60 * 1000L
+        private const val RETRY_DELAY = 10 * 1000L
     }
 }
