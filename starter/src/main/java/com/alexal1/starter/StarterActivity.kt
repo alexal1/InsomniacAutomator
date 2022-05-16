@@ -20,7 +20,7 @@ class StarterActivity : Activity() {
     private val bgThread = HandlerThread("starter_activity_worker").also { it.start() }
     private val bgHandler = Handler(bgThread.looper)
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val instagramTitleRegex = Regex("<title>\\s*Instagram\\s*</title>")
+    private val instagramTitleRegex = Regex("(?s)<title>.*Instagram.*</title>")
 
     private val rootLayout by lazy { findViewById<ConstraintLayout>(R.id.rootLayout) }
     private val textView by lazy { findViewById<TextView>(R.id.textView) }
